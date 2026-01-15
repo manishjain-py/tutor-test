@@ -1,0 +1,88 @@
+{
+  "topic_id": "math_fractions",
+  "topic_name": "Understanding Fractions",
+  "subject": "Mathematics",
+  "grade_level": 5,
+
+  "guidelines": {
+    "learning_objectives": [
+      "Understand what a fraction represents",
+      "Identify numerator and denominator",
+      "Compare fractions with the same denominator",
+      "Add fractions with the same denominator"
+    ],
+    "required_depth": "conceptual + procedural",
+    "prerequisite_concepts": ["division", "parts of a whole"],
+    "common_misconceptions": [
+      "Larger denominator means larger fraction",
+      "Adding fractions by adding numerators and denominators separately",
+      "Thinking 1/4 is bigger than 1/2 because 4 > 2"
+    ],
+    "teaching_approach": "Use visual models (pizza, pie charts) before abstract notation. Start with concrete examples and gradually move to symbolic representation."
+  },
+
+  "study_plan": {
+    "steps": [
+      {
+        "step_id": 1,
+        "type": "explain",
+        "concept": "what_is_a_fraction",
+        "content_hint": "Introduce fractions as parts of a whole using pizza analogy. If you have a pizza cut into 4 equal slices and eat 1, you've eaten 1/4 of the pizza."
+      },
+      {
+        "step_id": 2,
+        "type": "check",
+        "concept": "what_is_a_fraction",
+        "question_type": "conceptual"
+      },
+      {
+        "step_id": 3,
+        "type": "explain",
+        "concept": "numerator_denominator",
+        "content_hint": "Explain numerator (how many pieces you have) and denominator (total pieces the whole is divided into). Top number = what you have, bottom number = total parts."
+      },
+      {
+        "step_id": 4,
+        "type": "check",
+        "concept": "numerator_denominator",
+        "question_type": "procedural"
+      },
+      {
+        "step_id": 5,
+        "type": "practice",
+        "concept": "numerator_denominator",
+        "question_count": 2
+      },
+      {
+        "step_id": 6,
+        "type": "explain",
+        "concept": "comparing_fractions_same_denominator",
+        "content_hint": "When fractions have the same denominator, compare numerators. Like comparing slices from the same pizza - more slices = bigger fraction."
+      },
+      {
+        "step_id": 7,
+        "type": "check",
+        "concept": "comparing_fractions_same_denominator",
+        "question_type": "conceptual"
+      },
+      {
+        "step_id": 8,
+        "type": "practice",
+        "concept": "comparing_fractions_same_denominator",
+        "question_count": 3
+      },
+      {
+        "step_id": 9,
+        "type": "explain",
+        "concept": "adding_fractions_same_denominator",
+        "content_hint": "To add fractions with the same denominator, add the numerators and keep the denominator. Like combining pizza slices - 2/8 + 3/8 = 5/8."
+      },
+      {
+        "step_id": 10,
+        "type": "practice",
+        "concept": "adding_fractions_same_denominator",
+        "question_count": 3
+      }
+    ]
+  }
+}

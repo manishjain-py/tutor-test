@@ -1,0 +1,113 @@
+﻿Goal
+Deliver a ChatGPT-like guided tutoring session for a chosen topic/subtopic, using:
+* Topic Guidelines (what to teach + required depth)
+
+* Study Plan (step-by-step teaching flow)
+
+* Student Context (grade/board + personalization)
+
+________________
+
+
+Core Design
+Use a central Teacher Orchestrator that owns the conversation and learning progress, and delegates narrow tasks to specialist agents.
+Principle:
+   * Orchestrator = conversation + state + decisions + final response
+
+   * Specialists = single-purpose intelligence returning structured outputs (not user-facing)
+
+________________
+
+
+Main Components
+1) Teacher Orchestrator (Primary)
+      * Drives the session according to the study plan and guidelines.
+
+      * For every student message:
+
+         1. Understand intent + context
+
+         2. Create a mini-plan (which specialists to call)
+
+         3. Call specialists and collect outputs
+
+         4. Compose one coherent student-facing reply
+
+         5. Update session state + advance/adapt the plan
+
+2) Specialist Agents (Callable by Orchestrator)
+            * Explainer Agent: Generates an explanation tailored to student level/style (simple language, examples, analogies).
+
+            * Assessor Agent: Produces practice questions/checkpoints aligned to what was taught (quick checks, drills, mini-quiz).
+
+            * Evaluator Agent: Judges student response vs expected understanding; detects misconceptions; outputs feedback + mastery signal.
+
+            * Topic Steering Agent: Handles off-topic questions briefly and guides the student back to the lesson flow.
+
+            * Safety/Behavior Agent: Detects abusive language/policy issues and returns boundary-setting guidance.
+
+            * Study Plan Adapter Agent: Adjusts upcoming steps (pacing, remediation, alternative approach) based on learning signals.
+
+________________
+
+
+Session State (Maintained by Orchestrator)
+Minimal state required for reliable tutoring:
+               * Current step in study plan
+
+               * Concepts covered + last concept taught
+
+               * Last question asked + expected answer/rubric
+
+               * Mastery estimate (per concept/sub-skill) and confidence
+
+               * Misconceptions / weak areas detected
+
+               * Student preferences (pace, tone, example themes, language level)
+
+               * Behavior flags (off-topic count, warnings, safety events)
+
+               * Session Summary (running memory / breadcrumbs)
+
+                  * what’s been taught so far + depth reached
+
+                  * examples/analogies used (avoid repetition, keep continuity)
+
+                  * student responses + observed progress trend
+
+                  * key stuck points + what helped
+
+                  * what remains / next focus
+
+________________
+
+
+Turn-by-Turn Flow
+                     1. Initialize: load guidelines + study plan + student context into session state
+
+                     2. Teach/Ask: orchestrator follows the next study-plan step (explain / ask / practice)
+
+                     3. Student responds
+
+                     4. Intent detect: answer vs confusion vs off-topic vs unsafe behavior, etc.
+
+                     5. Mini-plan: decide which specialists to call (e.g., Evaluator + Explainer)
+
+                     6. Specialist outputs: structured evaluation / explanation / questions / plan tweak
+
+                     7. Final response: orchestrator sends a single coherent reply and next prompt
+
+                     8. State update: update mastery + summary + advance/adapt plan
+
+________________
+
+
+Output Guarantee
+Only the Orchestrator talks to the student, ensuring:
+                        * consistent voice/persona
+
+                        * alignment to guidelines + study plan
+
+                        * controlled safety and topic steering
+
+                        * measurable learning progress via evaluation + mastery tracking

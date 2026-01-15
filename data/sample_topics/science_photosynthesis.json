@@ -1,0 +1,89 @@
+{
+  "topic_id": "science_photosynthesis",
+  "topic_name": "Photosynthesis",
+  "subject": "Science",
+  "grade_level": 6,
+
+  "guidelines": {
+    "learning_objectives": [
+      "Understand that plants make their own food",
+      "Know the ingredients needed for photosynthesis",
+      "Understand what photosynthesis produces",
+      "Know where photosynthesis happens in plants"
+    ],
+    "required_depth": "conceptual",
+    "prerequisite_concepts": ["plants are living things", "basic plant parts"],
+    "common_misconceptions": [
+      "Plants get food from the soil",
+      "Plants only need water to grow",
+      "Photosynthesis and respiration are the same thing",
+      "Plants don't need oxygen"
+    ],
+    "teaching_approach": "Use the analogy of a kitchen/factory. Plants have a 'food factory' in their leaves. Connect to everyday observations like why plants need sunlight."
+  },
+
+  "study_plan": {
+    "steps": [
+      {
+        "step_id": 1,
+        "type": "explain",
+        "concept": "plants_make_food",
+        "content_hint": "Introduce the idea that plants are special - they can make their own food! Unlike animals who have to find and eat food, plants have their own 'food factory' in their leaves."
+      },
+      {
+        "step_id": 2,
+        "type": "check",
+        "concept": "plants_make_food",
+        "question_type": "conceptual"
+      },
+      {
+        "step_id": 3,
+        "type": "explain",
+        "concept": "photosynthesis_ingredients",
+        "content_hint": "The 'recipe' for photosynthesis: sunlight (energy), water (from roots), carbon dioxide (from air). These are the ingredients plants need to make food."
+      },
+      {
+        "step_id": 4,
+        "type": "check",
+        "concept": "photosynthesis_ingredients",
+        "question_type": "procedural"
+      },
+      {
+        "step_id": 5,
+        "type": "practice",
+        "concept": "photosynthesis_ingredients",
+        "question_count": 2
+      },
+      {
+        "step_id": 6,
+        "type": "explain",
+        "concept": "photosynthesis_products",
+        "content_hint": "What does the plant factory produce? Glucose (food/sugar for energy) and oxygen (released into the air). This oxygen is what we breathe!"
+      },
+      {
+        "step_id": 7,
+        "type": "check",
+        "concept": "photosynthesis_products",
+        "question_type": "conceptual"
+      },
+      {
+        "step_id": 8,
+        "type": "explain",
+        "concept": "chlorophyll_chloroplasts",
+        "content_hint": "The factory workers: Chloroplasts are tiny parts inside leaf cells where photosynthesis happens. Chlorophyll is the green color that captures sunlight."
+      },
+      {
+        "step_id": 9,
+        "type": "check",
+        "concept": "chlorophyll_chloroplasts",
+        "question_type": "conceptual"
+      },
+      {
+        "step_id": 10,
+        "type": "practice",
+        "concept": "photosynthesis_complete",
+        "question_count": 3
+      }
+    ]
+  }
+}

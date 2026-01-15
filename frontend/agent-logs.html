@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Logs - Tutoring Agent POC</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/agent-logs.css">
+</head>
+<body>
+    <div class="logs-container">
+        <!-- Header -->
+        <header class="logs-header">
+            <h1>Agent Workflow Logs</h1>
+            <div class="header-controls">
+                <a href="/" class="back-link">Back to Tutor</a>
+                <div class="session-selector">
+                    <label for="session-input">Session ID:</label>
+                    <input type="text" id="session-input" placeholder="Enter session ID...">
+                    <button id="load-btn" class="btn btn-primary">Load</button>
+                </div>
+                <div class="refresh-controls">
+                    <label class="auto-refresh-label">
+                        <input type="checkbox" id="auto-refresh" checked>
+                        Auto-refresh (3s)
+                    </label>
+                    <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filters -->
+        <div class="logs-filters">
+            <div class="filter-group">
+                <label for="agent-filter">Agent:</label>
+                <select id="agent-filter">
+                    <option value="">All Agents</option>
+                    <option value="orchestrator">Orchestrator</option>
+                    <option value="safety">Safety</option>
+                    <option value="explainer">Explainer</option>
+                    <option value="evaluator">Evaluator</option>
+                    <option value="assessor">Assessor</option>
+                    <option value="topic_steering">Topic Steering</option>
+                    <option value="plan_adapter">Plan Adapter</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="turn-filter">Turn ID:</label>
+                <input type="text" id="turn-filter" placeholder="e.g., turn_3">
+            </div>
+            <div class="stats-display">
+                <span id="logs-count">0 logs</span>
+                <span id="last-updated">Never updated</span>
+            </div>
+        </div>
+
+        <!-- Logs Display -->
+        <main class="logs-main">
+            <div id="logs-list" class="logs-list">
+                <div class="empty-state">
+                    <p>No logs to display.</p>
+                    <p>Enter a session ID and click "Load" to view agent logs.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Log Detail Modal -->
+        <div id="detail-modal" class="modal" style="display: none;">
+            <div class="modal-overlay" id="detail-overlay"></div>
+            <div class="modal-content log-detail-modal">
+                <div class="modal-header">
+                    <h2 id="detail-title">Log Details</h2>
+                    <button class="modal-close" id="detail-close">&times;</button>
+                </div>
+                <div class="modal-body" id="detail-body">
+                    <!-- Details will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/agent-logs.js"></script>
+</body>
+</html>
