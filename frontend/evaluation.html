@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Dashboard</title>
+    <link rel="stylesheet" href="/static/evaluation.css">
+</head>
+<body>
+    <div class="eval-app">
+        <!-- Header -->
+        <header class="eval-header">
+            <div class="eval-header-left">
+                <a href="/" class="back-link" title="Back to Tutor">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <h1>Evaluation Dashboard</h1>
+            </div>
+            <span class="eval-header-subtitle">Automated tutoring session reviews</span>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="eval-layout">
+            <!-- Sidebar: Run List -->
+            <aside class="eval-sidebar" id="eval-sidebar">
+                <div class="sidebar-header">
+                    <h2>Runs</h2>
+                    <div class="sidebar-header-actions">
+                        <span class="run-count" id="run-count"></span>
+                        <button class="run-eval-btn" id="run-eval-btn" title="Run new evaluation">&#9654;</button>
+                    </div>
+                </div>
+                <div class="eval-status-bar" id="eval-status-bar" style="display: none;">
+                    <div class="eval-status-indicator">
+                        <span class="eval-status-spinner"></span>
+                        <span class="eval-status-text" id="eval-status-text"></span>
+                    </div>
+                    <div class="eval-status-detail" id="eval-status-detail"></div>
+                </div>
+                <div class="run-list" id="run-list">
+                    <p class="loading">Loading runs...</p>
+                </div>
+            </aside>
+
+            <!-- Detail Panel -->
+            <main class="eval-detail" id="eval-detail">
+                <div class="empty-state" id="empty-state">
+                    <div class="empty-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                            <path d="M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            <path d="M9 14l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <p>Select a run from the sidebar to view details</p>
+                </div>
+
+                <!-- Tabs + Content (hidden until a run is selected) -->
+                <div class="detail-content" id="detail-content" style="display: none;">
+                    <div class="tab-bar">
+                        <button class="tab active" data-tab="conversation">Conversation</button>
+                        <button class="tab" data-tab="review">Review</button>
+                        <button class="tab" data-tab="issues">Issues</button>
+                    </div>
+                    <div class="tab-panel active" id="tab-conversation"></div>
+                    <div class="tab-panel" id="tab-review"></div>
+                    <div class="tab-panel" id="tab-issues"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/evaluation.js"></script>
+</body>
+</html>

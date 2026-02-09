@@ -35,6 +35,12 @@ class TutorApp {
             modalOverlay: document.getElementById('modal-overlay'),
             modalClose: document.getElementById('modal-close'),
             modalBody: document.getElementById('modal-body'),
+            // Study Plan Modal elements
+            studyPlanBtn: document.getElementById('study-plan-btn'),
+            studyPlanModal: document.getElementById('study-plan-modal'),
+            studyPlanModalOverlay: document.getElementById('study-plan-modal-overlay'),
+            studyPlanModalClose: document.getElementById('study-plan-modal-close'),
+            studyPlanModalBody: document.getElementById('study-plan-modal-body'),
         };
 
         this.init();
@@ -117,6 +123,9 @@ class TutorApp {
             // Show agent logs link and update URL
             this.elements.agentLogsLink.style.display = 'flex';
             this.elements.agentLogsLink.href = `/agent-logs?session=${this.sessionId}`;
+
+            // Show study plan button
+            this.elements.studyPlanBtn.style.display = 'flex';
 
             // Clear messages
             this.elements.chatMessages.innerHTML = '';
@@ -299,6 +308,96 @@ class TutorApp {
 
     closeStateViewer() {
         this.elements.stateModal.style.display = 'none';
+    }
+
+    async openStudyPlan() {
+        if (!this.sessionId) {
+            return;
+        }
+
+        // Show modal
+        this.elements.studyPlanModal.style.display = 'flex';
+        this.elements.studyPlanModalBody.innerHTML = '<div class="state-loading">Loading study plan...</div>';
+
+        try {
+            // Fetch detailed state which includes study plan
+            const response = await fetch(`/api/sessions/${this.sessionId}/detailed`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch study plan');
+            }
+
+            const state = await response.json();
+
+            // Render study plan
+            this.renderStudyPlan(state);
+        } catch (error) {
+            console.error('Failed to load study plan:', error);
+            this.elements.studyPlanModalBody.innerHTML = '<div class="state-loading">Failed to load study plan. Please try again.</div>';
+        }
+    }
+
+    closeStudyPlan() {
+        this.elements.studyPlanModal.style.display = 'none';
+    }
+
+    renderStudyPlan(state) {
+        if (!state.study_plan || !state.study_plan.steps) {
+            this.elements.studyPlanModalBody.innerHTML = '<div class="state-loading">No study plan available.</div>';
+            return;
+        }
+
+        const getStepDetails = (step) => {
+            if (step.type === 'explain' && step.content_hint) {
+                return `<div class="step-content-hint">${step.content_hint}</div>`;
+            } else if (step.type === 'check' && step.question_type) {
+                return `<div class="step-meta">Question type: ${step.question_type}</div>`;
+            } else if (step.type === 'practice' && step.question_count) {
+                return `<div class="step-meta">${step.question_count} question${step.question_count > 1 ? 's' : ''}</div>`;
+            }
+            return '';
+        };
+
+        const getStepIcon = (type) => {
+            switch(type) {
+                case 'explain': return '📖';
+                case 'check': return '✅';
+                case 'practice': return '✏️';
+                default: return '📌';
+            }
+        };
+
+        const html = `
+            <div class="study-plan-header">
+                <div class="study-plan-topic">
+                    <span class="study-plan-topic-icon">📚</span>
+                    <span class="study-plan-topic-name">${state.topic ? state.topic.topic_name : 'Study Plan'}</span>
+                </div>
+                <div class="study-plan-progress">
+                    <span class="study-plan-progress-text">${Math.round(state.progress_percentage)}% Complete</span>
+                    <span class="study-plan-step-info">Step ${state.current_step} of ${state.total_steps}</span>
+                </div>
+            </div>
+            <div class="study-plan-steps">
+                ${state.study_plan.steps.map(step => `
+                    <div class="study-plan-step ${step.is_current ? 'current' : ''} ${step.is_completed ? 'completed' : ''}">
+                        <div class="step-number">
+                            ${step.is_completed ? '✓' : step.step_id}
+                        </div>
+                        <div class="step-info">
+                            <div class="step-header">
+                                <span class="step-type-icon">${getStepIcon(step.type)}</span>
+                                <span class="step-type-label">${step.type}</span>
+                                <span class="step-concept">${step.concept.replace(/_/g, ' ')}</span>
+                            </div>
+                            ${getStepDetails(step)}
+                        </div>
+                        ${step.is_current ? '<div class="step-current-badge">Current</div>' : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        this.elements.studyPlanModalBody.innerHTML = html;
     }
 
     renderDetailedState(state) {
@@ -662,10 +761,29 @@ class TutorApp {
             this.closeStateViewer();
         });
 
+        // Study Plan button
+        this.elements.studyPlanBtn.addEventListener('click', () => {
+            this.openStudyPlan();
+        });
+
+        // Study Plan modal close buttons
+        this.elements.studyPlanModalClose.addEventListener('click', () => {
+            this.closeStudyPlan();
+        });
+
+        this.elements.studyPlanModalOverlay.addEventListener('click', () => {
+            this.closeStudyPlan();
+        });
+
         // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.elements.stateModal.style.display === 'flex') {
-                this.closeStateViewer();
+            if (e.key === 'Escape') {
+                if (this.elements.stateModal.style.display === 'flex') {
+                    this.closeStateViewer();
+                }
+                if (this.elements.studyPlanModal.style.display === 'flex') {
+                    this.closeStudyPlan();
+                }
             }
         });
     }

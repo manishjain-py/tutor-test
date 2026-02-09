@@ -156,6 +156,8 @@ class StudyPlanStepDTO(BaseModel):
     type: str  # explain, check, practice
     concept: str
     content_hint: Optional[str] = None
+    question_type: Optional[str] = None  # conceptual, procedural, application
+    question_count: Optional[int] = None
     is_current: bool = False
     is_completed: bool = False
 

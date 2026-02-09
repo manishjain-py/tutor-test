@@ -15,5 +15,8 @@ __pycache__/
 logs/
 *.log
 
+# Evaluation run data (generated artifacts)
+evaluation/runs/
+
 # Claude
 .claude/

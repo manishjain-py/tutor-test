@@ -26,7 +26,7 @@ import time
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel, Field
 
-from backend.services.llm_service import LLMService, DEFAULT_MODEL
+from backend.services.llm_service import LLMService
 from backend.services.session_manager import InMemorySessionManager
 from backend.models.session import SessionState, Question
 from backend.models.messages import Message, create_teacher_message, create_student_message
@@ -262,7 +262,7 @@ class TeacherOrchestrator:
                 reasoning=self._extract_reasoning(safety_result),
                 duration_ms=safety_duration,
                 prompt=safety_agent.last_prompt,
-                model=DEFAULT_MODEL,
+                model=self.llm.model_name,
             )
 
             if not safety_result.is_safe:
@@ -328,7 +328,7 @@ class TeacherOrchestrator:
                 reasoning=decision.mini_plan_reasoning,
                 duration_ms=decision_duration,
                 prompt=self._last_decision_prompt,
-                model=DEFAULT_MODEL,
+                model=self.llm.model_name,
                 metadata={
                     "overall_strategy": decision.overall_strategy,
                     "expected_outcome": decision.expected_outcome,
@@ -369,7 +369,7 @@ class TeacherOrchestrator:
                 reasoning=f"Composed from {len(specialist_outputs)} specialist outputs",
                 duration_ms=compose_duration,
                 prompt=self._last_compose_prompt,
-                model=DEFAULT_MODEL,
+                model=self.llm.model_name,
                 metadata={"response_length": len(response)},
             )
 
@@ -590,7 +590,7 @@ class TeacherOrchestrator:
                     reasoning=self._extract_reasoning(result),
                     duration_ms=agent_duration,
                     prompt=agent.last_prompt,
-                    model=DEFAULT_MODEL,
+                    model=self.llm.model_name,
                 )
 
             except Exception as e:
@@ -615,7 +615,7 @@ class TeacherOrchestrator:
                     input_summary=f"Context: {context.current_concept or 'lesson'}",
                     duration_ms=agent_duration,
                     prompt=agent.last_prompt,
-                    model=DEFAULT_MODEL,
+                    model=self.llm.model_name,
                     metadata={"error": str(e)},
                 )
 

@@ -71,6 +71,12 @@ class Settings(BaseSettings):
     # ===========================================
     openai_api_key: str
     gemini_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+
+    # ===========================================
+    # LLM Provider
+    # ===========================================
+    app_llm_provider: Literal["openai", "anthropic"] = "openai"
 
     # ===========================================
     # Environment

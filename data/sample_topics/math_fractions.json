@@ -3,7 +3,6 @@
   "topic_name": "Understanding Fractions",
   "subject": "Mathematics",
   "grade_level": 5,
-
   "guidelines": {
     "learning_objectives": [
       "Understand what a fraction represents",
@@ -12,22 +11,24 @@
       "Add fractions with the same denominator"
     ],
     "required_depth": "conceptual + procedural",
-    "prerequisite_concepts": ["division", "parts of a whole"],
+    "prerequisite_concepts": [
+      "division",
+      "parts of a whole"
+    ],
     "common_misconceptions": [
       "Larger denominator means larger fraction",
       "Adding fractions by adding numerators and denominators separately",
       "Thinking 1/4 is bigger than 1/2 because 4 > 2"
     ],
-    "teaching_approach": "Use visual models (pizza, pie charts) before abstract notation. Start with concrete examples and gradually move to symbolic representation."
+    "teaching_approach": "Teach fractions as equal parts of one whole before using symbols. Start with a simple visual or real-life sharing situation and confirm the child understands the whole is split into equal parts. Introduce fraction notation a/b only after the idea is clear. Keep language simple and repeatedly connect symbols back to the visual/story. Proactively address misconceptions: more parts means smaller parts (so bigger denominator does not automatically mean bigger fraction), and when adding same-denominator fractions you add numerators only because part size stays the same. Use short, frequent checks and ask the student to explain reasoning in their own words. If the student struggles, return to visuals and equal-part reasoning. Progress from concrete models to drawings to numbers-only practice."
   },
-
   "study_plan": {
     "steps": [
       {
         "step_id": 1,
         "type": "explain",
         "concept": "what_is_a_fraction",
-        "content_hint": "Introduce fractions as parts of a whole using pizza analogy. If you have a pizza cut into 4 equal slices and eat 1, you've eaten 1/4 of the pizza."
+        "content_hint": "Explain that a fraction shows a part of a whole that has been divided into equal parts. Use a simple visual or real-life sharing situation to introduce 'one whole' and 'equal parts'. Confirm the student can identify the whole and the equal parts. Avoid locking into a single example; pick an age-appropriate example the child relates to."
       },
       {
         "step_id": 2,
@@ -39,7 +40,7 @@
         "step_id": 3,
         "type": "explain",
         "concept": "numerator_denominator",
-        "content_hint": "Explain numerator (how many pieces you have) and denominator (total pieces the whole is divided into). Top number = what you have, bottom number = total parts."
+        "content_hint": "Introduce fraction notation a/b after the idea of equal parts is clear. Explain denominator as the total number of equal parts the whole is divided into, and numerator as how many of those parts we are talking about. Emphasize that parts must be equal for the fraction to be valid."
       },
       {
         "step_id": 4,
@@ -57,7 +58,7 @@
         "step_id": 6,
         "type": "explain",
         "concept": "comparing_fractions_same_denominator",
-        "content_hint": "When fractions have the same denominator, compare numerators. Like comparing slices from the same pizza - more slices = bigger fraction."
+        "content_hint": "Teach that when denominators are the same, the pieces are the same size, so the fraction with the larger numerator is larger. Tie it back to 'more equal pieces of the same size means more of the whole'. Briefly surface the misconception that 'bigger denominator means bigger fraction' and correct it using the idea that more parts makes each part smaller."
       },
       {
         "step_id": 7,
@@ -75,7 +76,7 @@
         "step_id": 9,
         "type": "explain",
         "concept": "adding_fractions_same_denominator",
-        "content_hint": "To add fractions with the same denominator, add the numerators and keep the denominator. Like combining pizza slices - 2/8 + 3/8 = 5/8."
+        "content_hint": "Teach the rule and the reason: if denominators are the same, part size is the same, so add the numerators (how many parts) and keep the denominator (the part size/partition) unchanged. Explicitly warn not to add denominators. Connect the result back to combining equal parts in a visual model, then gradually move to symbols-only."
       },
       {
         "step_id": 10,

@@ -2,11 +2,18 @@
 LLM Service for Tutoring Agent POC
 
 This module provides a clean interface to OpenAI's API with:
-- Support for GPT-4o with structured JSON output
+- Support for GPT-5.2 with Responses API and reasoning
 - Automatic retry logic with exponential backoff
 - Error handling for rate limits and timeouts
 - Response parsing and validation
 - Integration with application logging
+
+GPT-5.2 Notes:
+- Uses Responses API (same as GPT-5.1)
+- Default reasoning is "none" (unlike GPT-5.1's "low")
+- New "xhigh" reasoning level for maximum reasoning
+- Supports structured output with json_schema (stricter than json_object)
+- Better token efficiency and cleaner formatting
 
 Design Principles:
 - Single Responsibility: Only handles LLM API calls
@@ -37,12 +44,19 @@ from backend.config import settings, ReasoningEffort
 from backend.exceptions import LLMServiceError, LLMTimeoutError, LLMRateLimitError
 from backend.logging_config import get_logger, log_llm_event
 from backend.utils.schema_utils import get_strict_schema
+from backend.services.anthropic_adapter import AnthropicAdapter, DEFAULT_CLAUDE_MODEL
+
+# Lazy import to avoid hard dependency when not using Anthropic
+try:
+    import anthropic as _anthropic_module
+except ImportError:
+    _anthropic_module = None
 
 
 logger = get_logger("llm")
 
-# Model mapping - use gpt-4o as our default model
-DEFAULT_MODEL = "gpt-4o"
+# Model mapping - use gpt-5.2 as our default model
+DEFAULT_MODEL = "gpt-5.2"
 
 
 class LLMService:
@@ -50,7 +64,7 @@ class LLMService:
     Service for making LLM API calls with retry logic and error handling.
 
     Features:
-    - GPT-4o support with structured JSON output
+    - GPT-5.2 support with Responses API and reasoning
     - Automatic retries with exponential backoff
     - Structured error handling
     - Comprehensive logging
@@ -63,24 +77,42 @@ class LLMService:
         max_retries: Optional[int] = None,
         initial_retry_delay: float = 1.0,
         timeout: Optional[int] = None,
+        provider: Optional[str] = None,
     ):
         """
         Initialize LLM service.
 
         Args:
-            api_key: OpenAI API key (defaults to settings)
+            api_key: API key (defaults to settings based on provider)
             max_retries: Maximum retry attempts (defaults to settings)
             initial_retry_delay: Initial delay between retries (seconds)
             timeout: Request timeout in seconds (defaults to settings)
+            provider: LLM provider - "openai" or "anthropic" (defaults to settings)
         """
-        self.api_key = api_key or settings.openai_api_key
+        self.provider = provider or settings.app_llm_provider
         self.max_retries = max_retries or settings.llm_max_retries
         self.initial_retry_delay = initial_retry_delay
         self.timeout = timeout or settings.llm_timeout_seconds
 
-        # Initialize clients
-        self.client = OpenAI(api_key=self.api_key)
-        self.async_client = AsyncOpenAI(api_key=self.api_key)
+        # Initialize clients based on provider
+        self._anthropic: Optional[AnthropicAdapter] = None
+        self.client = None
+        self.async_client = None
+
+        if self.provider == "anthropic":
+            self.api_key = api_key or settings.anthropic_api_key
+            self._anthropic = AnthropicAdapter(api_key=self.api_key, timeout=self.timeout)
+        else:
+            self.api_key = api_key or settings.openai_api_key
+            self.client = OpenAI(api_key=self.api_key)
+            self.async_client = AsyncOpenAI(api_key=self.api_key)
+
+    @property
+    def model_name(self) -> str:
+        """Return the active model name based on provider."""
+        if self.provider == "anthropic":
+            return DEFAULT_CLAUDE_MODEL
+        return DEFAULT_MODEL
 
     async def call_gpt_5_2_async(
         self,
@@ -93,13 +125,22 @@ class LLMService:
         turn_id: str = "unknown",
     ) -> Dict[str, Any]:
         """
-        Async call to GPT-4o with optional structured output.
+        Async call to GPT-5.2 using the Responses API.
 
-        Note: This method is named call_gpt_5_2 for compatibility but uses gpt-4o.
+        GPT-5.2 is the newest flagship model with improvements over GPT-5.1:
+        - Better token efficiency on medium-to-complex tasks
+        - Cleaner formatting with less unnecessary verbosity
+        - New "xhigh" reasoning effort level
+        - Default reasoning is "none" for lower latency
+        - Supports strict json_schema for guaranteed schema adherence
 
         Args:
             prompt: The prompt to send
-            reasoning_effort: Reasoning level hint (used for system prompt)
+            reasoning_effort: How much thinking effort to use
+                - "none": Fastest, no chain-of-thought (default)
+                - "low": Light reasoning
+                - "medium": Moderate reasoning
+                - "high": Heavy reasoning
             json_mode: Whether to request JSON output
             json_schema: Optional JSON schema for structured output
             schema_name: Name for the schema (for logging)
@@ -109,15 +150,16 @@ class LLMService:
         Returns:
             Dict containing:
                 - output_text: The main output (valid JSON if json_mode=True)
-                - reasoning: None (kept for compatibility)
+                - reasoning: The reasoning process (if available)
                 - parsed: Parsed JSON output (if json_mode=True)
 
         Raises:
             LLMServiceError: If API call fails after retries
         """
+        active_model = self.model_name
         log_llm_event(
             logger=logger,
-            model=DEFAULT_MODEL,
+            model=active_model,
             status="starting",
             caller=caller,
             turn_id=turn_id,
@@ -130,54 +172,71 @@ class LLMService:
 
         start_time = time.time()
 
-        # Build system prompt based on reasoning effort
-        system_prompt = self._build_system_prompt(reasoning_effort, json_mode, json_schema)
-
-        async def _api_call():
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ]
-
-            kwargs = {
-                "model": DEFAULT_MODEL,
-                "messages": messages,
-                "timeout": self.timeout,
-            }
-
-            # Add response format for JSON mode
-            if json_schema:
-                kwargs["response_format"] = {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": schema_name,
-                        "schema": json_schema,
-                        "strict": True,
-                    }
+        if self.provider == "anthropic":
+            async def _api_call():
+                return await self._anthropic.call_async(
+                    prompt=prompt,
+                    reasoning_effort=reasoning_effort,
+                    json_mode=json_mode,
+                    json_schema=json_schema,
+                    schema_name=schema_name,
+                )
+        else:
+            async def _api_call():
+                kwargs = {
+                    "model": DEFAULT_MODEL,
+                    "input": prompt,
+                    "timeout": self.timeout,
                 }
-            elif json_mode:
-                kwargs["response_format"] = {"type": "json_object"}
 
-            response = await self.async_client.chat.completions.create(**kwargs)
-            output_text = response.choices[0].message.content
+                # Add reasoning if not "none" (none is default for 5.2)
+                if reasoning_effort != "none":
+                    kwargs["reasoning"] = {"effort": reasoning_effort}
 
-            output = {
-                "output_text": output_text,
-                "reasoning": None,  # Kept for compatibility
-            }
+                # Add structured output format
+                if json_schema:
+                    kwargs["text"] = {
+                        "format": {
+                            "type": "json_schema",
+                            "name": schema_name,
+                            "schema": json_schema,
+                            "strict": True,
+                        }
+                    }
+                elif json_mode:
+                    kwargs["text"] = {"format": {"type": "json_object"}}
 
-            # Parse JSON if applicable
-            if json_mode or json_schema:
-                try:
-                    output["parsed"] = json.loads(output_text)
-                except json.JSONDecodeError:
-                    output["parsed"] = None
+                result = await self.async_client.responses.create(**kwargs)
+                output_text = result.output_text
 
-            return output
+                # Convert reasoning object to string if present
+                reasoning_obj = getattr(result, "reasoning", None)
+                reasoning_str = None
+                if reasoning_obj is not None:
+                    if hasattr(reasoning_obj, "summary") and reasoning_obj.summary:
+                        reasoning_str = str(reasoning_obj.summary)
+                    elif hasattr(reasoning_obj, "text") and reasoning_obj.text:
+                        reasoning_str = str(reasoning_obj.text)
+                    else:
+                        reasoning_str = str(reasoning_obj)
+
+                output = {
+                    "output_text": output_text,
+                    "reasoning": reasoning_str,
+                }
+
+                # Parse JSON if applicable
+                if json_mode or json_schema:
+                    try:
+                        output["parsed"] = json.loads(output_text)
+                    except json.JSONDecodeError:
+                        output["parsed"] = None
+
+                return output
 
         result = await self._execute_with_retry_async(
             _api_call,
-            DEFAULT_MODEL,
+            active_model,
             caller,
             turn_id,
             start_time,
@@ -196,13 +255,14 @@ class LLMService:
         turn_id: str = "unknown",
     ) -> Dict[str, Any]:
         """
-        Synchronous call to GPT-4o.
+        Synchronous call to GPT-5.2 using the Responses API.
 
         See call_gpt_5_2_async for full documentation.
         """
+        active_model = self.model_name
         log_llm_event(
             logger=logger,
-            model=DEFAULT_MODEL,
+            model=active_model,
             status="starting",
             caller=caller,
             turn_id=turn_id,
@@ -214,78 +274,75 @@ class LLMService:
         )
 
         start_time = time.time()
-        system_prompt = self._build_system_prompt(reasoning_effort, json_mode, json_schema)
 
-        def _api_call():
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ]
-
-            kwargs = {
-                "model": DEFAULT_MODEL,
-                "messages": messages,
-                "timeout": self.timeout,
-            }
-
-            if json_schema:
-                kwargs["response_format"] = {
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": schema_name,
-                        "schema": json_schema,
-                        "strict": True,
-                    }
+        if self.provider == "anthropic":
+            def _api_call():
+                return self._anthropic.call_sync(
+                    prompt=prompt,
+                    reasoning_effort=reasoning_effort,
+                    json_mode=json_mode,
+                    json_schema=json_schema,
+                    schema_name=schema_name,
+                )
+        else:
+            def _api_call():
+                kwargs = {
+                    "model": DEFAULT_MODEL,
+                    "input": prompt,
+                    "timeout": self.timeout,
                 }
-            elif json_mode:
-                kwargs["response_format"] = {"type": "json_object"}
 
-            response = self.client.chat.completions.create(**kwargs)
-            output_text = response.choices[0].message.content
+                # Add reasoning if not "none" (none is default for 5.2)
+                if reasoning_effort != "none":
+                    kwargs["reasoning"] = {"effort": reasoning_effort}
 
-            output = {
-                "output_text": output_text,
-                "reasoning": None,
-            }
+                # Add structured output format
+                if json_schema:
+                    kwargs["text"] = {
+                        "format": {
+                            "type": "json_schema",
+                            "name": schema_name,
+                            "schema": json_schema,
+                            "strict": True,
+                        }
+                    }
+                elif json_mode:
+                    kwargs["text"] = {"format": {"type": "json_object"}}
 
-            if json_mode or json_schema:
-                try:
-                    output["parsed"] = json.loads(output_text)
-                except json.JSONDecodeError:
-                    output["parsed"] = None
+                result = self.client.responses.create(**kwargs)
+                output_text = result.output_text
 
-            return output
+                # Convert reasoning object to string if present
+                reasoning_obj = getattr(result, "reasoning", None)
+                reasoning_str = None
+                if reasoning_obj is not None:
+                    if hasattr(reasoning_obj, "summary") and reasoning_obj.summary:
+                        reasoning_str = str(reasoning_obj.summary)
+                    elif hasattr(reasoning_obj, "text") and reasoning_obj.text:
+                        reasoning_str = str(reasoning_obj.text)
+                    else:
+                        reasoning_str = str(reasoning_obj)
+
+                output = {
+                    "output_text": output_text,
+                    "reasoning": reasoning_str,
+                }
+
+                if json_mode or json_schema:
+                    try:
+                        output["parsed"] = json.loads(output_text)
+                    except json.JSONDecodeError:
+                        output["parsed"] = None
+
+                return output
 
         return self._execute_with_retry_sync(
             _api_call,
-            DEFAULT_MODEL,
+            active_model,
             caller,
             turn_id,
             start_time,
         )
-
-    def _build_system_prompt(
-        self,
-        reasoning_effort: ReasoningEffort,
-        json_mode: bool,
-        json_schema: Optional[Dict[str, Any]],
-    ) -> str:
-        """Build the system prompt based on parameters."""
-        parts = ["You are a helpful assistant."]
-
-        # Add reasoning guidance based on effort level
-        if reasoning_effort == "high":
-            parts.append("Think carefully and thoroughly before responding.")
-        elif reasoning_effort == "medium":
-            parts.append("Consider the problem carefully before responding.")
-        elif reasoning_effort == "low":
-            parts.append("Provide a direct and concise response.")
-
-        # Add JSON instructions
-        if json_schema or json_mode:
-            parts.append("You must respond with valid JSON only, no additional text.")
-
-        return " ".join(parts)
 
     async def call_gpt_4o_async(
         self,
@@ -310,9 +367,10 @@ class LLMService:
         Returns:
             Response text (JSON string if json_mode=True)
         """
+        fast_model = DEFAULT_CLAUDE_MODEL if self.provider == "anthropic" else "gpt-4o"
         log_llm_event(
             logger=logger,
-            model="gpt-4o",
+            model=fast_model,
             status="starting",
             caller=caller,
             turn_id=turn_id,
@@ -321,24 +379,33 @@ class LLMService:
 
         start_time = time.time()
 
-        async def _api_call():
-            kwargs = {
-                "model": "gpt-4o",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-                "timeout": self.timeout,
-            }
+        if self.provider == "anthropic":
+            async def _api_call():
+                result = await self._anthropic.call_async(
+                    prompt=prompt,
+                    reasoning_effort="none",
+                    json_mode=json_mode,
+                )
+                return result["output_text"]
+        else:
+            async def _api_call():
+                kwargs = {
+                    "model": "gpt-4o",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "timeout": self.timeout,
+                }
 
-            if json_mode:
-                kwargs["response_format"] = {"type": "json_object"}
+                if json_mode:
+                    kwargs["response_format"] = {"type": "json_object"}
 
-            response = await self.async_client.chat.completions.create(**kwargs)
-            return response.choices[0].message.content
+                response = await self.async_client.chat.completions.create(**kwargs)
+                return response.choices[0].message.content
 
         return await self._execute_with_retry_async(
             _api_call,
-            "GPT-4o",
+            fast_model,
             caller,
             turn_id,
             start_time,
@@ -353,7 +420,7 @@ class LLMService:
         turn_id: str = "unknown",
     ) -> Dict[str, Any]:
         """
-        Call GPT-4o with a Pydantic model schema.
+        Call GPT-5.2 with a Pydantic model schema.
 
         Convenience method that handles schema transformation.
 
@@ -396,6 +463,30 @@ class LLMService:
             turn_id=turn_id,
         )
 
+    def _is_rate_limit_error(self, e: Exception) -> bool:
+        """Check if exception is a rate limit error from any provider."""
+        if isinstance(e, RateLimitError):
+            return True
+        if _anthropic_module and isinstance(e, _anthropic_module.RateLimitError):
+            return True
+        return False
+
+    def _is_timeout_error(self, e: Exception) -> bool:
+        """Check if exception is a timeout error from any provider."""
+        if isinstance(e, APITimeoutError):
+            return True
+        if _anthropic_module and isinstance(e, _anthropic_module.APITimeoutError):
+            return True
+        return False
+
+    def _is_api_error(self, e: Exception) -> bool:
+        """Check if exception is a non-retryable API error from any provider."""
+        if isinstance(e, OpenAIError):
+            return True
+        if _anthropic_module and isinstance(e, _anthropic_module.APIError):
+            return True
+        return False
+
     def _execute_with_retry_sync(
         self,
         api_call_fn,
@@ -426,35 +517,36 @@ class LLMService:
 
                 return result
 
-            except RateLimitError as e:
-                last_error = e
-                logger.warning(
-                    f"{model_name} rate limit hit (attempt {attempt + 1}/{self.max_retries})"
-                )
-                time.sleep(delay)
-                delay *= 2
-
-            except APITimeoutError as e:
-                last_error = e
-                logger.warning(
-                    f"{model_name} timeout (attempt {attempt + 1}/{self.max_retries})"
-                )
-                time.sleep(delay)
-                delay *= 2
-
-            except OpenAIError as e:
-                duration_ms = int((time.time() - start_time) * 1000)
-                log_llm_event(
-                    logger=logger,
-                    model=model_name,
-                    status="failed",
-                    caller=caller,
-                    turn_id=turn_id,
-                    error=str(e),
-                    duration_ms=duration_ms,
-                    attempts=attempt + 1,
-                )
-                raise LLMServiceError(str(e), model_name, attempt + 1) from e
+            except Exception as e:
+                if self._is_rate_limit_error(e):
+                    last_error = e
+                    logger.warning(
+                        f"{model_name} rate limit hit (attempt {attempt + 1}/{self.max_retries})"
+                    )
+                    time.sleep(delay)
+                    delay *= 2
+                elif self._is_timeout_error(e):
+                    last_error = e
+                    logger.warning(
+                        f"{model_name} timeout (attempt {attempt + 1}/{self.max_retries})"
+                    )
+                    time.sleep(delay)
+                    delay *= 2
+                elif self._is_api_error(e):
+                    duration_ms = int((time.time() - start_time) * 1000)
+                    log_llm_event(
+                        logger=logger,
+                        model=model_name,
+                        status="failed",
+                        caller=caller,
+                        turn_id=turn_id,
+                        error=str(e),
+                        duration_ms=duration_ms,
+                        attempts=attempt + 1,
+                    )
+                    raise LLMServiceError(str(e), model_name, attempt + 1) from e
+                else:
+                    raise
 
         # All retries failed
         duration_ms = int((time.time() - start_time) * 1000)
@@ -504,35 +596,36 @@ class LLMService:
 
                 return result
 
-            except RateLimitError as e:
-                last_error = e
-                logger.warning(
-                    f"{model_name} rate limit hit (attempt {attempt + 1}/{self.max_retries})"
-                )
-                await asyncio.sleep(delay)
-                delay *= 2
-
-            except APITimeoutError as e:
-                last_error = e
-                logger.warning(
-                    f"{model_name} timeout (attempt {attempt + 1}/{self.max_retries})"
-                )
-                await asyncio.sleep(delay)
-                delay *= 2
-
-            except OpenAIError as e:
-                duration_ms = int((time.time() - start_time) * 1000)
-                log_llm_event(
-                    logger=logger,
-                    model=model_name,
-                    status="failed",
-                    caller=caller,
-                    turn_id=turn_id,
-                    error=str(e),
-                    duration_ms=duration_ms,
-                    attempts=attempt + 1,
-                )
-                raise LLMServiceError(str(e), model_name, attempt + 1) from e
+            except Exception as e:
+                if self._is_rate_limit_error(e):
+                    last_error = e
+                    logger.warning(
+                        f"{model_name} rate limit hit (attempt {attempt + 1}/{self.max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                    delay *= 2
+                elif self._is_timeout_error(e):
+                    last_error = e
+                    logger.warning(
+                        f"{model_name} timeout (attempt {attempt + 1}/{self.max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                    delay *= 2
+                elif self._is_api_error(e):
+                    duration_ms = int((time.time() - start_time) * 1000)
+                    log_llm_event(
+                        logger=logger,
+                        model=model_name,
+                        status="failed",
+                        caller=caller,
+                        turn_id=turn_id,
+                        error=str(e),
+                        duration_ms=duration_ms,
+                        attempts=attempt + 1,
+                    )
+                    raise LLMServiceError(str(e), model_name, attempt + 1) from e
+                else:
+                    raise
 
         # All retries failed
         duration_ms = int((time.time() - start_time) * 1000)
