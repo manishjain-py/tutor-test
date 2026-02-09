@@ -1,0 +1,217 @@
+{
+  "config": {
+    "server_host": "localhost",
+    "server_port": 8000,
+    "server_startup_timeout": 30,
+    "health_check_interval": 1.0,
+    "topic_id": "math_fractions",
+    "student_grade": 5,
+    "student_board": "CBSE",
+    "language_level": "simple",
+    "persona_file": "average_student.json",
+    "max_turns": 20,
+    "turn_timeout": 90,
+    "simulator_model": "gpt-4o",
+    "simulator_temperature": 0.8,
+    "simulator_max_tokens": 150,
+    "evaluator_model": "gpt-5.2",
+    "evaluator_reasoning_effort": "high"
+  },
+  "generated_at": "2026-02-08T13:57:40.730271",
+  "message_count": 1,
+  "messages": [
+    {
+      "role": "tutor",
+      "content": "Hi there! Today we\u2019re going to learn about fractions using fun examples like pizza slices, sports teams, and games. We\u2019ll see what a fraction means, find the numerator and denominator, compare fractions with the same denominator, and add them too\u2014are you ready to begin?",
+      "turn": 0,
+      "timestamp": "2026-02-08T13:57:17.553876"
+    }
+  ],
+  "session_metadata": {
+    "session_id": "sess_f154e3531123",
+    "created_at": "2026-02-08T08:27:10.546445",
+    "updated_at": "2026-02-08T08:27:10.546449",
+    "turn_count": 0,
+    "topic": {
+      "topic_id": "math_fractions",
+      "topic_name": "Understanding Fractions",
+      "subject": "Mathematics",
+      "grade_level": 5,
+      "learning_objectives": [
+        "Understand what a fraction represents",
+        "Identify numerator and denominator",
+        "Compare fractions with the same denominator",
+        "Add fractions with the same denominator"
+      ],
+      "common_misconceptions": [
+        "Larger denominator means larger fraction",
+        "Adding fractions by adding numerators and denominators separately",
+        "Thinking 1/4 is bigger than 1/2 because 4 > 2"
+      ]
+    },
+    "study_plan": {
+      "total_steps": 10,
+      "steps": [
+        {
+          "step_id": 1,
+          "type": "explain",
+          "concept": "what_is_a_fraction",
+          "content_hint": "Explain that a fraction shows a part of a whole that has been divided into equal parts. Use a simple visual or real-life sharing situation to introduce 'one whole' and 'equal parts'. Confirm the student can identify the whole and the equal parts. Avoid locking into a single example; pick an age-appropriate example the child relates to.",
+          "question_type": null,
+          "question_count": null,
+          "is_current": true,
+          "is_completed": false
+        },
+        {
+          "step_id": 2,
+          "type": "check",
+          "concept": "what_is_a_fraction",
+          "content_hint": null,
+          "question_type": "conceptual",
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 3,
+          "type": "explain",
+          "concept": "numerator_denominator",
+          "content_hint": "Introduce fraction notation a/b after the idea of equal parts is clear. Explain denominator as the total number of equal parts the whole is divided into, and numerator as how many of those parts we are talking about. Emphasize that parts must be equal for the fraction to be valid.",
+          "question_type": null,
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 4,
+          "type": "check",
+          "concept": "numerator_denominator",
+          "content_hint": null,
+          "question_type": "procedural",
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 5,
+          "type": "practice",
+          "concept": "numerator_denominator",
+          "content_hint": null,
+          "question_type": null,
+          "question_count": 2,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 6,
+          "type": "explain",
+          "concept": "comparing_fractions_same_denominator",
+          "content_hint": "Teach that when denominators are the same, the pieces are the same size, so the fraction with the larger numerator is larger. Tie it back to 'more equal pieces of the same size means more of the whole'. Briefly surface the misconception that 'bigger denominator means bigger fraction' and correct it using the idea that more parts makes each part smaller.",
+          "question_type": null,
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 7,
+          "type": "check",
+          "concept": "comparing_fractions_same_denominator",
+          "content_hint": null,
+          "question_type": "conceptual",
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 8,
+          "type": "practice",
+          "concept": "comparing_fractions_same_denominator",
+          "content_hint": null,
+          "question_type": null,
+          "question_count": 3,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 9,
+          "type": "explain",
+          "concept": "adding_fractions_same_denominator",
+          "content_hint": "Teach the rule and the reason: if denominators are the same, part size is the same, so add the numerators (how many parts) and keep the denominator (the part size/partition) unchanged. Explicitly warn not to add denominators. Connect the result back to combining equal parts in a visual model, then gradually move to symbols-only.",
+          "question_type": null,
+          "question_count": null,
+          "is_current": false,
+          "is_completed": false
+        },
+        {
+          "step_id": 10,
+          "type": "practice",
+          "concept": "adding_fractions_same_denominator",
+          "content_hint": null,
+          "question_type": null,
+          "question_count": 3,
+          "is_current": false,
+          "is_completed": false
+        }
+      ]
+    },
+    "current_step": 1,
+    "total_steps": 10,
+    "progress_percentage": 0.0,
+    "is_complete": false,
+    "concepts_covered": [],
+    "last_concept_taught": null,
+    "student_profile": {
+      "grade": 5,
+      "board": "CBSE",
+      "language_level": "simple",
+      "preferred_examples": [
+        "food",
+        "sports",
+        "games"
+      ],
+      "pace_preference": "normal"
+    },
+    "awaiting_response": false,
+    "last_question": null,
+    "mastery_items": [
+      {
+        "concept": "what_is_a_fraction",
+        "score": 0.0,
+        "level": "not_started"
+      },
+      {
+        "concept": "numerator_denominator",
+        "score": 0.0,
+        "level": "not_started"
+      },
+      {
+        "concept": "comparing_fractions_same_denominator",
+        "score": 0.0,
+        "level": "not_started"
+      },
+      {
+        "concept": "adding_fractions_same_denominator",
+        "score": 0.0,
+        "level": "not_started"
+      }
+    ],
+    "overall_mastery": 0.0,
+    "misconceptions": [],
+    "weak_areas": [],
+    "session_summary": {
+      "turn_timeline": [],
+      "concepts_taught": [],
+      "examples_used": [],
+      "analogies_used": [],
+      "stuck_points": [],
+      "what_helped": [],
+      "progress_trend": "steady"
+    },
+    "behavioral": {
+      "off_topic_count": 0,
+      "warning_count": 0,
+      "safety_flags": []
+    },
+    "conversation_history": []
+  }
+}

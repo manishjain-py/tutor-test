@@ -15,8 +15,9 @@ __pycache__/
 logs/
 *.log
 
-# Evaluation run data (generated artifacts)
-evaluation/runs/
+# Evaluation run data - only exclude log/error files
+evaluation/runs/*/run.log
+evaluation/runs/*/error.txt
 
 # Claude
 .claude/

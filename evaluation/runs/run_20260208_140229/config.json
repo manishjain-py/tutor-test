@@ -1,0 +1,18 @@
+{
+  "server_host": "localhost",
+  "server_port": 8000,
+  "server_startup_timeout": 30,
+  "health_check_interval": 1.0,
+  "topic_id": "math_fractions",
+  "student_grade": 5,
+  "student_board": "CBSE",
+  "language_level": "simple",
+  "persona_file": "average_student.json",
+  "max_turns": 20,
+  "turn_timeout": 90,
+  "simulator_model": "gpt-4o",
+  "simulator_temperature": 0.8,
+  "simulator_max_tokens": 150,
+  "evaluator_model": "gpt-5.2",
+  "evaluator_reasoning_effort": "high"
+}
