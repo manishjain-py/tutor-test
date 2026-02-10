@@ -68,7 +68,12 @@ class AnthropicAdapter:
                     "input_schema": json_schema,
                 }
             ]
-            kwargs["tool_choice"] = {"type": "tool", "name": schema_name}
+            # Anthropic prohibits forced tool_choice with thinking enabled;
+            # use "auto" when thinking is on, forced otherwise.
+            if budget > 0:
+                kwargs["tool_choice"] = {"type": "auto"}
+            else:
+                kwargs["tool_choice"] = {"type": "tool", "name": schema_name}
         elif json_mode:
             system_parts.append(
                 "You MUST respond with valid JSON only. No markdown, no explanation outside the JSON."
@@ -105,6 +110,14 @@ class AnthropicAdapter:
             elif block.type == "tool_use":
                 parsed = block.input
                 output_text = json.dumps(parsed)
+
+        # If json_schema was requested but model returned text instead of tool_use
+        # (happens with tool_choice: auto + thinking), try parsing text as JSON
+        if json_schema and not parsed and output_text:
+            try:
+                parsed = json.loads(output_text)
+            except json.JSONDecodeError:
+                parsed = None
 
         # If json_mode (no schema) parse the text as JSON
         if json_mode and not json_schema and not parsed:

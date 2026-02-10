@@ -25,6 +25,7 @@ Usage:
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Type, Optional
+import json
 import time
 import asyncio
 
@@ -194,7 +195,13 @@ class BaseAgent(ABC):
             )
 
             # Validate and parse output
-            parsed = result.get("parsed", {})
+            parsed = result.get("parsed")
+            if not parsed and result.get("output_text"):
+                try:
+                    parsed = json.loads(result["output_text"])
+                except (json.JSONDecodeError, TypeError):
+                    parsed = {}
+            parsed = parsed or {}
             validated = validate_agent_output(
                 output=parsed,
                 model=output_model,
